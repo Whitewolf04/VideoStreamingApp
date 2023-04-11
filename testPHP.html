@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>File Upload Test</title>
+</head>
+<body>
+	<h1>File Upload Test</h1>
+	<p>Select a text file to upload:</p>
+	<input type="file" id="file-input">
+  	<button onclick="uploadFile()">Upload</button>
+	<script>
+		function uploadFile(){
+			var formData = new FormData();
+			const fileInput = document.getElementById('file-input');
+			const file = fileInput.files[0];
+			formData.append('file', file);
+			
+			fetch('http://localhost:9000/socketServer.php', {
+				method: 'POST',
+				body: formData
+			  }).then(response => response.text())
+			  .then(textResponse => console.log(textResponse))
+			  .catch(error => {
+				console.error(error);
+			  })
+		};
+	</script>
+</body>
+</html>
