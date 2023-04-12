@@ -29,15 +29,12 @@ start_button.addEventListener('click', function() {
     media_recorder.addEventListener('stop', async function() {
     	// create local object URL from the recorded video blobs
       const recordedBlob = new Blob(blobs_recorded, { type: 'video/webm' });
-    	let video_local = URL.createObjectURL(recordedBlob);
-    	download_link.href = video_local;
-      download_link.download = "recorded_video.webm";
-      download_link.click();
 
       await ffmpeg.load();
       const fileData = await recordedBlob.arrayBuffer();
       const fileArray = new Uint8Array(fileData);
       await ffmpeg.FS('writeFile', './recorded_video.webm', fileArray);
+      await transcode();
     });
 
     // start recording with each recorded blob having 1 second video
@@ -45,8 +42,7 @@ start_button.addEventListener('click', function() {
 });
 
 stop_button.addEventListener('click', function() {
-	media_recorder.stop(); 
-  transcode();
+	media_recorder.stop();
 });
 
 
@@ -56,18 +52,15 @@ stop_button.addEventListener('click', function() {
 // const transcode = async ({ target: { files } }) => {
 const transcode = async () => {
   // const { name } = files[0];
-  await ffmpeg.load();
+  // await ffmpeg.load();
   // ffmpeg.FS('writeFile', name, await fetchFile(files[0]));
   // await ffmpeg.run('-i', name, "-vcodec", "libx264", "-acodec", "aac",  'output.mp4');
-  const fileStat = await ffmpeg.FS('stat', './recorded_video.webm');
-  if(!fileStat){
-    console.error('File not found in ffmpeg');
-  }
   const name = 'recorded_video.webm';
   await ffmpeg.FS('readFile', './recorded_video.webm');
 
   // Segment the video
-  await ffmpeg.run('-i', name, '-map', '0', '-segment_time', '3', '-force_key_frames', 'expr:gte(t,n_forced*3)', '-reset_timestamps', '1', '-vcodec', 'libx264', '-acodec', 'aac',  '-f', 'segment', 'output_video%d.mp4')
+  await ffmpeg.run('-i', name, "-c:v", "libx264", "-b:v", "5000k", "-acodec", "aac",  'output.mp4');
+  await ffmpeg.run('-i', 'output.mp4', '-map', '0', '-segment_time', '3', '-force_key_frames', 'expr:gte(t,n_forced*3)', '-reset_timestamps', '1', '-vcodec', 'libx264', '-acodec', 'aac',  '-f', 'segment', 'output_video%d.mp4')
 
   // Loop through the segmented parts in the file system, and send to server
   for(let i = 0; i > -1; i++){
@@ -76,7 +69,7 @@ const transcode = async () => {
     try{
       data = ffmpeg.FS('readFile', fileName);
     } catch (error) {
-      console.log('Total number of segments: ' + (i-1));
+      console.log('Total number of segments: ' + i);
       break;
     }
 
@@ -130,7 +123,7 @@ const transcode = async () => {
   .catch(error => console.error(error))
 }
 
-document.getElementById('uploader').addEventListener('change', transcode);
+// document.getElementById('uploader').addEventListener('change', transcode);
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
