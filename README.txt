@@ -1,8 +1,8 @@
 Team 41
 Name:	Minh Tuan To
-	Tyson Pham
+		Tyson Pham
 Student ID:	40114920
-		40017829
+			40017829
 Server: labs445-1.encs.concordia
 Username on server: team41
 Password on server: password41
@@ -16,18 +16,24 @@ HOW TO RUN THE CODE:
 	6. Go to 'localhost:9000/socketServer.php' on browser to check if the tunnel is working. Blank page means it is working properly!
 	7. Open a separate tab for terminal in local machine
 	8. Go to the code directory and run another localhost with command: php -S localhost:5000
-	9. Go to 'localhost:5000' on browser, and you should see a page for recording or uploading video
+	9. Go to 'localhost:5000' on browser, and you should see a page for recording video
 	10. Open up console
-	11. Click start recording/upload a video to see how the program uploads and responds!
+	11. Click open camera to prepare the camera for recording
+	12. Click start streaming to start recording
+	13. Click stop streaming and watch on console for the status of video processing and upload.
 
 EXPLANATION OF THE CODE:
 	- index.html: HTML page to store all the elements that is needed for video playback and video uploading
-	- script.js: Handling video recording and video encoding
-	- segment.js: Handling video segmenting and video uploading
-		+) Here, I use the FFmpeg web assembly library to segment the video.
+	- segment.js: All video processing will be done here
+		+) Here, I use the FFmpeg web assembly library to encode and segment the video.
 		+) Since FFmpeg needs server-side operation, I used a CDN from cloudflare to help me with processing ffmpeg.
 		+) FFmpeg web assembly also needs SharedArrayBuffer, which is a server-side service, so I used a worker called coi-serviceworker.js to bypass this requirement.
 		+) After fulfilling all FFmpeg requirements, it is loaded onto the javascript file to run segmenting operation.
+		+) First, the recording function is handled. I enable start and stop recording, and I use WebM as the type of video recorded.
+		+) When the "Stop Streaming" button is clicked, it will make a Blob object of the video recorded and send this Blob to FFmpeg file system.
+		+) Then, the transcode() function is called to read this video from the file system and start encoding.
+		+) A command line is run for ffmpeg to convert and encode the WebM video to h.264 with 5Mbps bitrate, and an mp4 video is outputted.
+		+) Then, that output video is splitted into 3-second segments with each segment having h.264 encoding for video and AAC encoding for audio.
 		+) After segmentation, FFmpeg writes the output segments into its Emscripten file system
 		+) Using the output segment names, I loop through and find all the segments within the file system for uploading.
 		+) For each segment, I create an object URL and append it to a FormData object.
@@ -53,3 +59,6 @@ REFERENCES:
 	    https://stackoverflow.com/questions/951021/what-is-the-javascript-version-of-sleep
 	- Bypassing CORS error when accessing different localhost
 	    https://stackoverflow.com/questions/18642828/origin-origin-is-not-allowed-by-access-control-allow-origin
+	- Video recording with JavaScript
+	    https://usefulangle.com/post/354/javascript-record-video-from-camera
+		

@@ -30,6 +30,7 @@ start_button.addEventListener('click', function() {
     	// create local object URL from the recorded video blobs
       const recordedBlob = new Blob(blobs_recorded, { type: 'video/webm' });
 
+      // Load the video into ffmpeg file systemm for encoding and segmenting
       await ffmpeg.load();
       const fileData = await recordedBlob.arrayBuffer();
       const fileArray = new Uint8Array(fileData);
@@ -47,19 +48,14 @@ stop_button.addEventListener('click', function() {
 
 
 
-// const { createFFmpeg, fetchFile, FS } = FFmpeg;
-// const ffmpeg = createFFmpeg({ log: true });
-// const transcode = async ({ target: { files } }) => {
 const transcode = async () => {
-  // const { name } = files[0];
-  // await ffmpeg.load();
-  // ffmpeg.FS('writeFile', name, await fetchFile(files[0]));
-  // await ffmpeg.run('-i', name, "-vcodec", "libx264", "-acodec", "aac",  'output.mp4');
   const name = 'recorded_video.webm';
   await ffmpeg.FS('readFile', './recorded_video.webm');
 
-  // Segment the video
+  // Encode the video into h.264 with 5Mbps bitrate
   await ffmpeg.run('-i', name, "-c:v", "libx264", "-b:v", "5000k", "-acodec", "aac",  'output.mp4');
+
+  // Segment the encoded video into 3-second segments
   await ffmpeg.run('-i', 'output.mp4', '-map', '0', '-segment_time', '3', '-force_key_frames', 'expr:gte(t,n_forced*3)', '-reset_timestamps', '1', '-vcodec', 'libx264', '-acodec', 'aac',  '-f', 'segment', 'output_video%d.mp4')
 
   // Loop through the segmented parts in the file system, and send to server
@@ -122,8 +118,6 @@ const transcode = async () => {
   })
   .catch(error => console.error(error))
 }
-
-// document.getElementById('uploader').addEventListener('change', transcode);
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
