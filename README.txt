@@ -1,26 +1,6 @@
-Team 41
 Name:	Minh Tuan To
-		Tyson Pham
 Student ID:	40114920
-			40017829
-Server: labs445-1.encs.concordia
-Username on server: team41
-Password on server: password41
-
-HOW TO RUN THE CODE:
-	1. SSH to the server with the command: ssh team41@labs445-1.encs.concordia.ca
-	2. Change directory to streaming (The full path for this directory should be /home/team41/streaming/)
-	3. Run PHP localhost with the command: php -S localhost:9000
-	4. Open a separate tab for terminal in local machine
-	5. Create an SSH tunnel with the command: ssh -L 9000:localhost:9000 team41@labs445-1.encs.concordia.ca
-	6. Go to 'localhost:9000/socketServer.php' on browser to check if the tunnel is working. Blank page means it is working properly!
-	7. Open a separate tab for terminal in local machine
-	8. Go to the code directory and run another localhost with command: php -S localhost:5000
-	9. Go to 'localhost:5000' on browser, and you should see a page for recording video
-	10. Open up console
-	11. Click open camera to prepare the camera for recording
-	12. Click start streaming to start recording
-	13. Click stop streaming and watch on console for the status of video processing and upload.
+Server: Personal server (because the server provided by the professor no longer has free storage)
 
 EXPLANATION OF THE CODE:
 	- index.html: HTML page to store all the elements that is needed for video playback and video uploading
@@ -42,7 +22,11 @@ EXPLANATION OF THE CODE:
 		+) After each upload, the upload will sleep for 3.1s which is enough time for 1 segment to be played onto the video player before moving on to the next segment.
 		+) After all segments are uploaded, I send a "Complete" message to the server to retrieve the list of uploaded videos from server-side
 	- coi-serviceworker.js: Bypassing SharedArrayBuffer error in browser and letting FFmpeg use the SharedArrayBuffer.
-	- socketServer.php: Handling file uploads and send the total file list when complete message has been received
+	- socketServer.php: Handling file uploads and send the total file list when complete message has been received. When user click "Load DASH", a "Create" message is sent to trigger createMPD.sh script
+	- createMPD.sh: A bash script that runs ffmpeg on the server to concatenate all the segments uploaded and then compile them into an MPEG-DASH playlist with 4 quality levels. 
+	- resetDash.sh: A bash script that removes all .mpd and .m4s file from the previous recordings. This script is triggered when the user record a new video.
+	- dashPlayer.js: Handling of DASH playlist creation and play the DASH video on-demand
+
 
 
 

@@ -13,19 +13,8 @@
         };
     }
 
-    //Testing file upload
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
-        $target_dir = '/home/team41/streaming/'; // directory to save uploaded files
-        $target_file = $target_dir . basename($_FILES['file']['name']);
-        if (move_uploaded_file($_FILES['file']['tmp_name'], $target_file)) {
-            echo "The file " . basename($_FILES['file']['name']) . " has been stored locally.";
-        } else {
-            echo "Sorry, there was an error storing the file locally.";
-        }
-    }
-
     // Upload complete, return list of mp4 files
-    if(isset($_POST['message'])){
+    if(isset($_POST['message']) && strcmp($_POST['message'], 'Complete') == 0){
         $search = '/home/team41/streaming/*.mp4';
         $files = glob($search);
         $output = '';
@@ -39,6 +28,15 @@
 
             echo $output;
         }
+
+        shell_exec('./resetDash.sh');
+    }
+
+    // Create mpd playlist from uploaded mp4 files
+    if(isset($_POST['message']) && strcmp($_POST['message'], 'Create') == 0){
+        $output = shell_exec('./createMPD.sh');
+
+        echo $output;
     }
 
 ?>
